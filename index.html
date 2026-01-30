@@ -463,7 +463,24 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
                 tension: 0.4
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { top: 30 } }, // Evita que los números altos se corten
+    plugins: {
+        datalabels: {
+            display: true,
+            align: 'top',
+            offset: 8, // Este es el "ascensor" que sube el número sobre la línea
+            font: { weight: 'bold', size: 10 },
+            formatter: (val) => val > 0 ? fmtNum(val) : ''
+        }
+    },
+    scales: {
+        y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+        x: { grid: { display: false } }
+    }
+}
     });
 }
 
