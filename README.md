@@ -9,9 +9,11 @@
 Esta versión 1.0 elimina la dependencia de archivos externos (JSON manuales), integrando un motor de obtención de datos climáticos en tiempo real. 
 
 ### 📡 Validación Automática de Estaciones
-Al introducir las coordenadas (Latitud/Longitud), el sistema inicia un protocolo de doble verificación:
-1.  **Cercanía Geográfica:** Identifica la estación más próxima mediante el cálculo de distancias geoespaciales (Haversine).
-2.  **Validación Técnica:** Conecta con la infraestructura de AEMET para confirmar la disponibilidad de datos. Si la estación principal carece de registros, el sistema activa un **bucle de resiliencia** que itera automáticamente entre las 5 estaciones más cercanas hasta validar una fuente fiable.
+Al introducir las coordenadas (Latitud/Longitud), el sistema inicia un protocolo de verificación técnica:
+1.  **Cercanía Pitagórica:** Identifica la estación más próxima mediante el cálculo de **distancia euclidiana** entre coordenadas decimales, garantizando una respuesta inmediata del motor de búsqueda.
+2.  **Validación Técnica:** Conecta con la infraestructura de AEMET para confirmar la disponibilidad de datos. Si la estación principal carece de registros o está fuera de servicio, el sistema activa un **bucle de resiliencia** que itera automáticamente entre las 5 estaciones más cercanas hasta validar una fuente fiable.
+
+
 
 ## 🛰️ Motor de Estabilidad Climática (Media Trienal)
 
@@ -27,8 +29,6 @@ En el sector agrícola, es común que las estaciones sufran fallos técnicos tem
 * **Contabilización Dinámica:** Si un mes concreto falta en uno de los tres años, el sistema calcula la media aritmética dividiendo únicamente por los registros válidos encontrados (`medias[m].count++`).
 * **Filtrado de Nulos:** Se descartan automáticamente valores negativos o erróneos, asegurando que el **"Mes Típico Medio"** sea matemáticamente coherente.
 * **Garantía de Cálculo:** El proceso nunca se detiene por falta de un dato mensual; el algoritmo se auto-ajusta para ofrecer la mejor aproximación posible con la serie histórica disponible.
-
-
 
 ## 🛠️ Funcionalidades Core
 
