@@ -154,6 +154,16 @@
 </div>
 
 <script>
+// --- PUENTE DE SECCIONES 1 Y 2 ---
+const API_KEY = "tu_api_key_aqui...";
+let estacionSeleccionadaId = null; // <-- Este es el cable que une las dos secciones
+
+// --- EN LA FUNCIÓN DE BÚSQUEDA (SECCIÓN 1) ---
+// ... (cuando encuentras la mejor estación)
+if(mejor) {
+    estacionSeleccionadaId = mejor.indicativo; // Guardamos el código (ej: 8414A)
+    // ... resto de tu código para mostrar el nombre en el HTML
+}
 // --- CONFIGURACIÓN GLOBAL ---
 Chart.register(ChartDataLabels);
 Chart.defaults.font.family = "'Segoe UI', 'Helvetica', 'Arial', sans-serif";
@@ -201,6 +211,10 @@ function encontrarMasCercana() {
             if(d < dMin) { dMin = d; mejor = e; }
         });
         
+        // --- ESTA ES LA LÍNEA CLAVE QUE DEBES AÑADIR ---
+        estacionSeleccionadaId = mejor.indicativo; 
+        // -----------------------------------------------
+
         const res = document.getElementById('resBusqueda');
         res.style.display = "flex"; 
         res.innerHTML = `
