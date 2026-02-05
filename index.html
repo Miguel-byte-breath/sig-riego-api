@@ -441,7 +441,7 @@ const num = (x) => {
             const rIni = new Date(Math.max(iter, fIni)), rFin = new Date(Math.min(new Date(anio, mIdx, diasMesTotal), fFin));
             const nDiasActivos = Math.max(0, (rFin - rIni) / (86400000) + 1);
 
-            if (nDiasActivos > 0) {
+           if (nDiasActivos > 0) {
     const pMensualAvg = medias[mIdx+1].count > 0 ? (medias[mIdx+1].sumP / medias[mIdx+1].count) : 0;
 
     // --- ETo FAO-56 (mm/día) ---
@@ -512,26 +512,14 @@ const num = (x) => {
     const peActiva = (peMensualTotal / diasMesTotal) * nDiasActivos;
     const nhn_m3 = Math.max(0, etcMesTotal - peActiva) * 10;
 
-    // ... (el resto de tu bloque sigue igual)
+    sumaNHn += nhn_m3;
+    const etiquetaBonita = `${nombresMesesCortos[mIdx]}-${String(anio).slice(-2)}`;
+
+    mesesCiclo.push({
+        etiqueta: etiquetaBonita, mesNum: mIdx+1, anio: anio, diasActivos: nDiasActivos,
+        etoDiaria: etoDiaria, kc: kc, etcMm: etcMesTotal, pMm: pMensualAvg, peMm: peActiva, nhn_m3: nhn_m3
+    });
 }
-                const kc = cultivo.kc[mIdx+1] || 0;
-                const etcDiaria = etoDiaria * kc;
-                const etcMesTotal = etcDiaria * nDiasActivos; 
-
-                let peMensualTotal = (pMensualAvg < 70) ? (0.6 * pMensualAvg) - 10 : (0.8 * pMensualAvg) - 24;
-                if (peMensualTotal < 0) peMensualTotal = 0;
-
-                const peActiva = (peMensualTotal / diasMesTotal) * nDiasActivos;
-                const nhn_m3 = Math.max(0, etcMesTotal - peActiva) * 10;
-
-                sumaNHn += nhn_m3;
-                const etiquetaBonita = `${nombresMesesCortos[mIdx]}-${String(anio).slice(-2)}`;
-
-                mesesCiclo.push({ 
-                    etiqueta: etiquetaBonita, mesNum: mIdx+1, anio: anio, diasActivos: nDiasActivos,
-                    etoDiaria: etoDiaria, kc: kc, etcMm: etcMesTotal, pMm: pMensualAvg, peMm: peActiva, nhn_m3: nhn_m3 
-                });
-            }
             iter.setMonth(iter.getMonth() + 1);
         }
 
