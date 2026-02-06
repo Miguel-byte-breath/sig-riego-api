@@ -167,6 +167,46 @@ let cultivosData = [], exportDataMensual = [], exportDataSemanal = [], miGrafica
 
 const fmtNum = (n, dec=0) => n.toLocaleString('es-ES', { minimumFractionDigits: dec, maximumFractionDigits: dec });
 const nombresMesesCortos = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+// =======================
+// MODELO INTERNO (Evolución: estación principal + apoyo solo radiación) + trazabilidad
+// =======================
+
+// Política de datos (no ejecuta nada aún)
+const POLICY = {
+    primaryProvides: ["tmin", "tmax", "tmean", "rhmean", "wind"],
+    supportProvides: ["rad"] // SOLO radiación (glo / inso)
+};
+
+// Catálogo interno de estaciones que vamos a usar en siguientes pasos
+// station: { id, name, lat, lon, alt }
+let estacionesModelo = {
+    primary: null,
+    support: [],
+    ranked: [] // estaciones cercanas ordenadas por distancia (para resiliencia)
+};
+
+// Registro: qué estación aportó qué variable por mes
+let usageLogMensual = {}; // se inicializa cuando sepamos los monthKeys
+
+function initUsageLog(monthKeys) {
+    const log = {};
+    for (const mk of monthKeys) {
+        log[mk] = {
+            tmean: null,
+            tmin: null,
+            tmax: null,
+            rhmean: null,
+            wind: null,
+            rad: null
+        };
+    }
+    return log;
+}
+
+function setUsed(log, monthKey, field, stationId, varName, note) {
+    if (!log || !log[monthKey]) return;
+    log[monthKey][field] = { stationId, var: varName, note: note || "" };
+}
 
 // Carga inicial de cultivos
 fetch('cultivos.json').then(r => r.json()).then(data => {
