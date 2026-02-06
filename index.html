@@ -522,16 +522,16 @@ const u2 = windToU2(mm.sumWind / mm.count);
         const Ra = raMJ(latDeg, J);
         const N = daylightHours(latDeg, J);
 
-        let Rs = 0;
-        if (mm.sumInso > 0) {
-            const n = mm.sumInso / mm.count;        // horas de sol medias
-            Rs = rsFromInsolation(n, N, Ra);        // MJ/m²/día
-        } else if (mm.sumGlo > 0) {
-            const gloAvg = mm.sumGlo / mm.count;    // valor mensual medio
-            Rs = rsFromGloMonthly(gloAvg, diasMesTotal);
-        } else {
-            Rs = 0;
-        }
+       let Rs = 0;
+if (mm.sumGlo > 0) {
+    const gloAvg = mm.sumGlo / mm.count;    // valor mensual medio
+    Rs = rsFromGloMonthly(gloAvg, diasMesTotal);
+} else if (mm.sumInso > 0) {
+    const n = mm.sumInso / mm.count;        // horas de sol medias
+    Rs = rsFromInsolation(n, N, Ra);        // MJ/m²/día
+} else {
+    Rs = 0;
+}
 
         if (Rs > 0) {
             etoDiaria = etoPM_Fao56_MeanDaily({
