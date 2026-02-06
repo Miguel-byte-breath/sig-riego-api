@@ -583,17 +583,22 @@ let monthKeysCiclo = [];
 
     const mm = medias[mIdx + 1];
     if (mm.count > 0 && estacionSeleccionadaMeta) {
-
+    const stationIdUsada = estacionSeleccionadaId || (estacionSeleccionadaMeta && estacionSeleccionadaMeta.indicativo) || null;
     const z = parseFloat(estacionSeleccionadaMeta.altitud || "0");
     const latDeg = aemetToDec(estacionSeleccionadaMeta.latitud);
 
     const Tmean = mm.sumTmean / mm.count;
+    setUsed(usageLogMensual, monthKey, "tmean", stationIdUsada, "tmed", "principal efectiva");
     const Tmax  = mm.sumTmax / mm.count;
+    setUsed(usageLogMensual, monthKey, "tmax", stationIdUsada, "tmax", "principal efectiva");
     const Tmin  = mm.sumTmin / mm.count;
+    setUsed(usageLogMensual, monthKey, "tmin", stationIdUsada, "tmin", "principal efectiva");
     const RHmean = mm.sumRH / mm.count;
+    setUsed(usageLogMensual, monthKey, "rhmean", stationIdUsada, "hr_med", "principal efectiva");
 
     // viento medio AEMET (km/h) convertido a u2 (m/s a 2 m, FAO-56)
     const u2 = windToU2(mm.sumWind / mm.count);
+    setUsed(usageLogMensual, monthKey, "wind", stationIdUsada, "w_med", "principal efectiva");
 
     // Día juliano representativo: día 15 del mes
     const J = Math.floor((new Date(anio, mIdx, 15) - new Date(anio, 0, 1)) / 86400000) + 1;
