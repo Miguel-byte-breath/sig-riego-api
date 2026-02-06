@@ -180,9 +180,10 @@ const POLICY = {
 // Catálogo interno de estaciones que vamos a usar en siguientes pasos
 // station: { id, name, lat, lon, alt }
 let estacionesModelo = {
-    primary: null,
+    primary: null,            // la principal efectiva (cuando lo activemos)
+    primaryCandidate: null,   // la más cercana por distancia
     support: [],
-    ranked: [] // estaciones cercanas ordenadas por distancia (para resiliencia)
+    ranked: []
 };
 
 // Registro: qué estación aportó qué variable por mes
@@ -402,7 +403,7 @@ estacionesModelo.ranked = estacionesCercanas.map(e => {
 });
 
 // Candidata por cercanía (aún no sustituye tu estación validada actual)
-estacionesModelo.primary = estacionesModelo.ranked[0] || null;
+estacionesModelo.primaryCandidate = estacionesModelo.ranked[0] || null;
 estacionesModelo.support = estacionesModelo.ranked.slice(1, 10);
 
        let estacionValida = null;
