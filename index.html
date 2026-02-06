@@ -238,12 +238,25 @@ function daylightHours(latDeg, J) {
     return (24 / Math.PI) * ws;
 }
 
-// Viento: km/h -> m/s y ajuste a 2 m. Asumimos medida a 10 m (lo habitual).
-// Si confirmas que AEMET ya es a 2 m, cambiamos zMedida a 2 y listo.
-function windToU2(u_kmh, zMedida = 10) {
-    const uz = u_kmh / 3.6; // m/s
-    return uz * 4.87 / Math.log(67.8 * zMedida - 5.42);
+// Viento: convertir a u2 (2 m) según FAO-56.
+// Asumimos que w_med de AEMET viene en m/s y está medido a ~10 m.
+// Si en tu dataset w_med viniera en km/h, pon AEMET_WMED_UNIT = "kmh".
+const AEMET_WMED_UNIT = "kmh"; // "ms" o "kmh"
+const AEMET_WIND_MEAS_HEIGHT_M = 10; // asumimos 10 m
+
+function windToU2(uInput, zMedida = AEMET_WIND_MEAS_HEIGHT_M, unit = AEMET_WMED_UNIT) {
+    if (uInput == null || !Number.isFinite(uInput)) return 0;
+
+    // Convertir a m/s
+    const uz = (unit === "kmh") ? (uInput / 3.6) : uInput;
+
+    // FAO-56 Eq. (47): u2 = uz * 4.87 / ln(67.8 z - 5.42)
+    const denom = Math.log(67.8 * zMedida - 5.42);
+    if (!Number.isFinite(denom) || denom === 0) return uz;
+
+    return uz * 4.87 / denom;
 }
+
 
 // Rs desde insolación (Angström-Prescott): Rs = (a + b * n/N) * Ra
 function rsFromInsolation(n, N, Ra) {
@@ -499,8 +512,8 @@ const num = (x) => {
         const Tmin  = mm.sumTmin / mm.count;
         const RHmean = mm.sumRH / mm.count;
 
-        // viento medio (km/h -> m/s a 2 m)
-        const u2 = windToU2(mm.sumWind / mm.count, 10);
+       // viento medio AEMET (km/h) convertido a u2 (m/s a 2 m, FAO-56)
+const u2 = windToU2(mm.sumWind / mm.count);
 
         // Día juliano representativo: día 15 del mes
         const J = Math.floor((new Date(anio, mIdx, 15) - new Date(anio, 0, 1)) / 86400000) + 1;
@@ -530,18 +543,22 @@ const num = (x) => {
     }
 
     // DEBUG (solo JULIO)
-    if (mIdx === 6) {
-        console.log("DEBUG JULIO", {
-            estacion: estacionSeleccionadaId,
-            count: mm.count,
-            Tmean: mm.count ? (mm.sumTmean / mm.count) : null,
-            RH: mm.count ? (mm.sumRH / mm.count) : null,
-            wind_kmh: mm.count ? (mm.sumWind / mm.count) : null,
-            sumInso: mm.sumInso,
-            sumGlo: mm.sumGlo,
-            etoDiaria
-        });
-    }
+if (mIdx === 6) {
+    const windAvg = mm.count ? (mm.sumWind / mm.count) : null;
+    const u2Dbg = (windAvg != null) ? windToU2(windAvg) : null;
+
+    console.log("DEBUG JULIO", {
+        estacion: estacionSeleccionadaId,
+        count: mm.count,
+        Tmean: mm.count ? (mm.sumTmean / mm.count) : null,
+        RH: mm.count ? (mm.sumRH / mm.count) : null,
+        wind_raw_kmh: windAvg,
+        u2_ms: u2Dbg,
+        sumInso: mm.sumInso,
+        sumGlo: mm.sumGlo,
+        etoDiaria
+    });
+}
 
     const kc = cultivo.kc[mIdx+1] || 0;
     const etcDiaria = etoDiaria * kc;
