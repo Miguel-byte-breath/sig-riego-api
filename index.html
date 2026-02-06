@@ -576,6 +576,8 @@ let monthKeysCiclo = [];
 
             if (nDiasActivos > 0) {
                    if (!monthKeysCiclo.includes(monthKey)) monthKeysCiclo.push(monthKey);
+                   if (!usageLogMensual[monthKey]) usageLogMensual[monthKey] = { tmean:null, tmin:null, tmax:null, rhmean:null, wind:null, rad:null };
+
     const pMensualAvg = medias[mIdx+1].count > 0 ? (medias[mIdx+1].sumP / medias[mIdx+1].count) : 0;
 
     // --- ETo FAO-56 (mm/día) ---
@@ -680,7 +682,8 @@ let monthKeysCiclo = [];
         }
         
 // Inicializar trazabilidad mensual (no afecta al cálculo todavía)
-usageLogMensual = initUsageLog(monthKeysCiclo);
+// usageLogMensual = initUsageLog(monthKeysCiclo);
+
 window._monthKeysCiclo = monthKeysCiclo; // DEBUG temporal
 console.log("DEBUG usageLog init", monthKeysCiclo.length, Object.keys(usageLogMensual).length);        
         
