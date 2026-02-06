@@ -676,6 +676,8 @@ let monthKeysCiclo = [];
         
 // Inicializar trazabilidad mensual (no afecta al cálculo todavía)
 usageLogMensual = initUsageLog(monthKeysCiclo);
+window._monthKeysCiclo = monthKeysCiclo; // DEBUG temporal
+console.log("DEBUG usageLog init", monthKeysCiclo.length, Object.keys(usageLogMensual).length);        
         
         // --- RENDERIZADO DE TABLA Y GRÁFICO ---
         const cuerpo = document.getElementById('cuerpoTabla');
