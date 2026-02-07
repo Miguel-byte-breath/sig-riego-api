@@ -541,6 +541,8 @@ async function generarPlanOro() {
     btn.innerText = "⏳ Procesando datos agronómicos...";
 
     try {
+        radMensualPorEstacion = {}; // Paso 5.2.3: reset radiación por estación
+
         const anioFin = new Date().getFullYear() - 1;
         const anioIni = anioFin - 2;
 
@@ -553,6 +555,8 @@ async function generarPlanOro() {
 console.log("ESTACIÓN:", estacionSeleccionadaId, estacionSeleccionadaMeta);
 console.log("AEMET ejemplo (primer registro):", aemet && aemet.length ? aemet[0] : null);
 console.log("Campos presentes (primer registro):", aemet && aemet.length ? Object.keys(aemet[0]) : []);
+
+        radMensualPorEstacion[estacionSeleccionadaId] = indexarRadiacionMensualDesdeAemet(aemet);
 
         // --- LÓGICA AGRONÓMICA ORIGINAL ---
         const cultivo = cultivosData[document.getElementById('selectCultivo').value];
