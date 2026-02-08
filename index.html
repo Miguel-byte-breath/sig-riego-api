@@ -477,6 +477,8 @@ console.log("[AEMET rango desde ciclo] cicloIni=", document.getElementById('cicl
             "cicloFin=", document.getElementById('cicloFin').value,
             "anioIni=", anioIni, "anioFin=", anioFin);
         
+const anioFinFetch = Math.min(anioFin, new Date().getFullYear() - 1);
+const anioIniFetch = Math.min(anioIni, anioFinFetch);
 
 // Buscamos más allá de 5 si hace falta, hasta encontrar variables suficientes
 const limiteBusqueda = Math.min(25, estacionesCercanas.length);
@@ -581,7 +583,7 @@ const supportStations = (estacionesModelo.support || []).slice(0, 5);
 
 for (const st of supportStations) {
     try {
-        const aemetSup = await fetchAemetMensual(st.id, anioIni, anioFin);
+        const datos = await fetchAemetMensual(est.id, anioIniFetch, anioFinFetch);
         radMensualPorEstacion[st.id] = indexarRadiacionMensualDesdeAemet(aemetSup);
     } catch (e) {
         console.warn("Radiación no disponible para estación support", st.id, e);
