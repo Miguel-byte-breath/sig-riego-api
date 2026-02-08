@@ -791,11 +791,10 @@ console.log("[AEMET rango desde ciclo] cicloIni=", document.getElementById('cicl
             "cicloFin=", document.getElementById('cicloFin').value,
             "anioIni=", anioIni, "anioFin=", anioFin);
         
-const anioFinFetch = new Date().getFullYear() - 1;
-const anioIniFetch = anioFinFetch - 2;
+
 // 1) Principal SIEMPRE = más cercana. Apoyos = siguientes 5
-const principal = ranked[0] || null;
-const supports = ranked.slice(1, 6);
+const principal = estacionesModelo.ranked[0] || null;
+const supports  = estacionesModelo.ranked.slice(1, 6);
 
 if (!principal) {
   const res = document.getElementById("resBusqueda");
