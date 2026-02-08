@@ -372,6 +372,116 @@ function indexarRadiacionMensualDesdeAemet(aemetJson) {
     }
     return out;
 }
+
+// =======================
+// BUILDER DE MEDIAS POR ESTACIÓN (para fallback mensual por variable)
+// =======================
+function buildMediasPorMesDesdeAemet(aemetJson) {
+    // medias[1..12] con acumuladores; 0 no usado
+    const medias = Array(13).fill(0).map(() => ({
+        sumP: 0,
+
+        // Temperaturas: guardamos directas y también tmax/tmin reales
+        sumTmeanDirect: 0,
+        countTmeanDirect: 0,
+
+        sumTmaxReal: 0,
+        countTmaxReal: 0,
+
+        sumTminReal: 0,
+        countTminReal: 0,
+
+        // HR
+        sumRH: 0,
+        countRH: 0,
+
+        // Viento (w_med en km/h, lo convertimos a u2 en el extractor)
+        sumWind: 0,
+        countWind: 0,
+
+        // (opcional) precip / otros
+        countAny: 0
+    }));
+
+    const num = (x) => {
+        const v = parseFloat(String(x ?? "").replace(",", "."));
+        return Number.isFinite(v) ? v : null;
+    };
+
+    for (const d of (aemetJson || [])) {
+        if (!d || !d.fecha) continue;
+        const m = parseInt(d.fecha.split("-")[1], 10);
+        if (!(m >= 1 && m <= 12)) continue;
+
+        const p = num(d.p_mes || d.precipitacion);
+        const tmean = num(d.tm_mes);
+        const tmax = num(d.tm_max);
+        const tmin = num(d.tm_min);
+        const rh = num(d.hr);
+        const wind = num(d.w_med);
+
+        if (p != null && p >= 0) medias[m].sumP += p;
+
+        if (tmean != null) {
+            medias[m].sumTmeanDirect += tmean;
+            medias[m].countTmeanDirect += 1;
+        }
+        if (tmax != null) {
+            medias[m].sumTmaxReal += tmax;
+            medias[m].countTmaxReal += 1;
+        }
+        if (tmin != null) {
+            medias[m].sumTminReal += tmin;
+            medias[m].countTminReal += 1;
+        }
+
+        if (rh != null) {
+            medias[m].sumRH += rh;
+            medias[m].countRH += 1;
+        }
+
+        if (wind != null) {
+            medias[m].sumWind += wind;
+            medias[m].countWind += 1;
+        }
+
+        medias[m].countAny += 1;
+    }
+
+    return medias;
+}
+
+function monthIndexFromKey(monthKey) {
+    // "YYYY-MM" -> 1..12
+    const mm = parseInt(String(monthKey || "").split("-")[1], 10);
+    return (mm >= 1 && mm <= 12) ? mm : null;
+}
+
+// =======================
+// MOTOR GENÉRICO: resolveMensualConFallback
+// =======================
+function resolveMensualConFallback(monthKey, extractor, principalId, supportIds, usageField, varName, noteBase) {
+    // 1) principal
+    const v0 = extractor(principalId, monthKey);
+    if (v0 != null) {
+        setUsed(usageLogMensual, monthKey, usageField, principalId, varName, noteBase || "principal");
+        return v0;
+    }
+
+    // 2) supports
+    const supp = (supportIds || []).slice(0, 5);
+    for (let i = 0; i < supp.length; i++) {
+        const sid = supp[i];
+        const vi = extractor(sid, monthKey);
+        if (vi != null) {
+            setUsed(usageLogMensual, monthKey, usageField, sid, varName, `${noteBase || "apoyo"} #${i + 1}`);
+            return vi;
+        }
+    }
+
+    return null;
+}
+
     
 // =======================
 // FAO-56 Penman-Monteith (ETo) usando "día representativo" del mes
