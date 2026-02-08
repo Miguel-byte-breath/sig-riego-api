@@ -932,19 +932,28 @@ function resolveTempsConFallback(monthKey, principalId, supportIds) {
     const stationIdUsada = estacionSeleccionadaId || (estacionSeleccionadaMeta && estacionSeleccionadaMeta.indicativo) || null;
     const z = parseFloat(estacionSeleccionadaMeta.altitud || "0");
     const latDeg = aemetToDec(estacionSeleccionadaMeta.latitud);
+// ---- PASO 4: resolve por fallback (principal + supports) ----
+const temps = resolveTempsConFallback(monthKey, estacionSeleccionadaId, supportIds);
 
-    const Tmean = mm.sumTmean / mm.count;
-    setUsed(usageLogMensual, monthKey, "tmean", stationIdUsada, "tmed", "principal efectiva");
-    const Tmax  = mm.sumTmax / mm.count;
-    setUsed(usageLogMensual, monthKey, "tmax", stationIdUsada, "tmax", "principal efectiva");
-    const Tmin  = mm.sumTmin / mm.count;
-    setUsed(usageLogMensual, monthKey, "tmin", stationIdUsada, "tmin", "principal efectiva");
-   const RHmean = (mm.countRH > 0) ? (mm.sumRH / mm.countRH) : null;
-if (RHmean != null) setUsed(usageLogMensual, monthKey, "rhmean", stationIdUsada, "hr_med", "principal efectiva");
+const RHmean = resolveMensualConFallback(
+    monthKey,
+    extractorRH,
+    estacionSeleccionadaId,
+    supportIds,
+    "rhmean",
+    "hr",
+    "principal"
+);
 
-    // viento medio AEMET (km/h) convertido a u2 (m/s a 2 m, FAO-56)
-    const u2 = windToU2(mm.sumWind / mm.count);
-    setUsed(usageLogMensual, monthKey, "wind", stationIdUsada, "w_med", "principal efectiva");
+const u2 = resolveMensualConFallback(
+    monthKey,
+    extractorU2,
+    estacionSeleccionadaId,
+    supportIds,
+    "wind",
+    "w_med->u2",
+    "principal"
+);
 
     // Día juliano representativo: día 15 del mes
     const J = Math.floor((new Date(anio, mIdx, 15) - new Date(anio, 0, 1)) / 86400000) + 1;
@@ -991,13 +1000,14 @@ if (radSource) {
     setUsed(usageLogMensual, monthKey, "rad", radSource.stationId, radSource.mode, radSource.note);
 }        
         
-    if (Rs > 0) {
-        etoDiaria = etoPM_Fao56_MeanDaily({
-            Tmean, Tmax, Tmin, RHmean, u2, Rs, z, latDeg, J
-        });
-    } else {
-        etoDiaria = 0; // sin radiación/insolación no estimamos
-    }
+    if (Rs > 0 && temps && RHmean != null && u2 != null) {
+    const { Tmean, Tmax, Tmin } = temps;
+    etoDiaria = etoPM_Fao56_MeanDaily({
+        Tmean, Tmax, Tmin, RHmean, u2, Rs, z, latDeg, J
+    });
+} else {
+    etoDiaria = 0; // sin variables o sin radiación no calculamos
+}
 
     // DEBUG (solo JULIO) -> dentro del if para que existan Ra, N, Rs
     if (mIdx === 6) {
