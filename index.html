@@ -677,8 +677,7 @@ const num = (x) => {
     const tmean = num(d.tm_mes);     // si viene
     const tmax = num(d.tm_max);
     const tmin = num(d.tm_min);
-    const rh = num(d.hr);
-    medias[m].countRH += 1;    
+    const rh = num(d.hr);    
     const wind = num(d.w_med);       // km/h
     const glo = num(d.glo);          // si viene (radiación global)
     const inso = num(d.inso);        // si viene (horas de sol)
@@ -694,8 +693,10 @@ const num = (x) => {
     medias[m].sumTmean += TmeanEff;
     medias[m].sumTmax += (tmax != null ? tmax : TmeanEff);
     medias[m].sumTmin += (tmin != null ? tmin : TmeanEff);
+    if (rh != null) {
     medias[m].sumRH += rh;
     medias[m].countRH += 1;
+}
     medias[m].sumWind += wind;
 
     if (glo != null && glo >= 0) medias[m].sumGlo += glo;
