@@ -362,7 +362,7 @@ function renderDiagnosticoSeccion1({ principal, supports, candidatesDiag, bestBy
     const note = (id === pid) ? "principal" : "apoyo";
     return `<div>• ${label}: <b>${name}</b> (<code>${id}</code>) — cobertura ${n}/${total} (<i>${note}</i>)</div>`;
   };
-
+return;
   res.innerHTML = `
     <div style="background:#eef7ff;border-radius:14px;padding:16px;border:1px solid #d7ecff">
       <div style="font-size:1.1rem;">
