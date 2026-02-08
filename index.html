@@ -284,6 +284,108 @@ function setUsed(log, monthKey, field, stationId, varName, note) {
     if (!log || !log[monthKey]) return;
     log[monthKey][field] = { stationId, var: varName, note: note || "" };
 }
+
+function stationIdOf(s) {
+  return s?.id || s?.indicativo || null;
+}
+
+function stationNameOf(s) {
+  return s?.name || s?.nombre || s?.meta?.nombre || stationIdOf(s) || "—";
+}
+
+// Cobertura por variable en el histórico descargado (cuenta meses con dato)
+function diagnosticoCobertura36mPorVar(aemetJson) {
+  const meses = new Map(); // YYYY-MM -> {temp,rh,wind,rad}
+  for (const d of (aemetJson || [])) {
+    if (!d?.fecha) continue;
+    const mk = String(d.fecha).slice(0, 7);
+
+    const tempOk = (d.tm_mes != null) || (d.tm_max != null && d.tm_min != null);
+    const rhOk = (d.hr != null);
+    const windOk = (d.w_med != null);
+    const radOk = (d.glo != null) || (d.inso != null);
+
+    if (!meses.has(mk)) meses.set(mk, { temp:false, rh:false, wind:false, rad:false });
+    const m = meses.get(mk);
+    if (tempOk) m.temp = true;
+    if (rhOk) m.rh = true;
+    if (windOk) m.wind = true;
+    if (radOk) m.rad = true;
+  }
+
+  const total = meses.size || 0;
+  const count = { temp:0, rh:0, wind:0, rad:0 };
+  for (const m of meses.values()) {
+    if (m.temp) count.temp++;
+    if (m.rh) count.rh++;
+    if (m.wind) count.wind++;
+    if (m.rad) count.rad++;
+  }
+  return { total, count };
+}
+
+// Elige la "mejor" estación para una variable según cobertura; empate -> más cercana
+function pickBestStationForVar(varKey, candidatesDiag) {
+  // candidatesDiag: [{ st, dist_km, diag:{total,count} }, ...]
+  let best = null;
+  for (const c of candidatesDiag) {
+    const n = c?.diag?.count?.[varKey] ?? 0;
+    if (!best) { best = { ...c, n }; continue; }
+    if (n > best.n) best = { ...c, n };
+    else if (n === best.n && (c.dist_km ?? 1e9) < (best.dist_km ?? 1e9)) best = { ...c, n };
+  }
+  return best; // puede ser null
+}
+
+function renderDiagnosticoSeccion1({ principal, supports, candidatesDiag, bestByVar }) {
+  const res = document.getElementById("resBusqueda");
+  if (!res) return;
+
+  const fmt = (x) => (x == null ? "—" : String(x).replace(".", ","));
+  const pid = stationIdOf(principal);
+  const pname = stationNameOf(principal);
+
+  const supportsHtml = (supports || []).map((s, i) => {
+    const id = stationIdOf(s);
+    const name = stationNameOf(s);
+    const dist = fmt(s.dist_km);
+    return `<div>• Apoyo #${i+1}: <b>${name}</b> (<code>${id}</code>) — ${dist} km</div>`;
+  }).join("");
+
+  const rowVar = (label, key) => {
+    const b = bestByVar?.[key];
+    if (!b) return `<div>• ${label}: —</div>`;
+    const id = stationIdOf(b.st);
+    const name = stationNameOf(b.st);
+    const n = b.n ?? 0;
+    const total = b.diag?.total ?? 0;
+    const note = (id === pid) ? "principal" : "apoyo";
+    return `<div>• ${label}: <b>${name}</b> (<code>${id}</code>) — cobertura ${n}/${total} (<i>${note}</i>)</div>`;
+  };
+
+  res.innerHTML = `
+    <div style="background:#eef7ff;border-radius:14px;padding:16px;border:1px solid #d7ecff">
+      <div style="font-size:1.1rem;">
+        ✅ <b>Principal (más cercana):</b> ${pname} (<code>${pid}</code>) — ${fmt(principal.dist_km)} km
+      </div>
+      <div style="margin-top:10px;">
+        <div style="font-weight:700;margin-bottom:6px;">Estaciones de apoyo (por distancia)</div>
+        ${supportsHtml || "<div>—</div>"}
+      </div>
+      <div style="margin-top:12px;">
+        <div style="font-weight:700;margin-bottom:6px;">Diagnóstico por variable (histórico ≈36 meses)</div>
+        ${rowVar("Temperatura", "temp")}
+        ${rowVar("Humedad relativa", "rh")}
+        ${rowVar("Viento", "wind")}
+        ${rowVar("Radiación (glo/inso)", "rad")}
+        <div style="margin-top:8px; font-size:0.9rem; opacity:0.85;">
+          Nota: el cálculo real (Sección 2) usará fallback mensual por variable (principal + 5 apoyos) y registrará trazabilidad por mes.
+        </div>
+      </div>
+    </div>
+  `;
+}
+    
 function renderResumenTrazabilidad(monthKeysCiclo, usageLogMensual) {
     const cont = document.getElementById("resTrazabilidad") || document.getElementById("resultados");
     if (!cont) return;
@@ -691,6 +793,60 @@ console.log("[AEMET rango desde ciclo] cicloIni=", document.getElementById('cicl
         
 const anioFinFetch = new Date().getFullYear() - 1;
 const anioIniFetch = anioFinFetch - 2;
+// 1) Principal SIEMPRE = más cercana. Apoyos = siguientes 5
+const principal = ranked[0] || null;
+const supports = ranked.slice(1, 6);
+
+if (!principal) {
+  const res = document.getElementById("resBusqueda");
+  if (res) res.textContent = "❌ No hay estaciones disponibles.";
+  return null;
+}
+
+// guardamos modelo de estaciones para Sección 2
+estacionesModelo.primaryCandidate = principal;
+estacionesModelo.support = supports;
+
+// La estación seleccionada para el cálculo será la principal (más cercana)
+estacionSeleccionadaId = stationIdOf(principal);
+estacionSeleccionadaMeta = principal.meta || principal;
+estacionSeleccionadaId = stationIdOf(principal);
+estacionSeleccionadaMeta = principal.meta || principal;
+
+// ⬇️ AQUÍ MISMO PEGAS EL PASO 2.2 ⬇️
+
+// 2) Diagnóstico por variable con histórico (~36 meses)
+const anioFinFetch = new Date().getFullYear() - 1;
+const anioIniFetch = anioFinFetch - 2;
+
+const candidates = [principal, ...supports];
+
+const settled = await Promise.allSettled(
+  candidates.map(st =>
+    fetchAemetMensual(stationIdOf(st), anioIniFetch, anioFinFetch)
+  )
+);
+
+const candidatesDiag = candidates.map((st, idx) => {
+  const r = settled[idx];
+  const aemetJson = (r.status === "fulfilled") ? r.value : null;
+  const diag = diagnosticoCobertura36mPorVar(aemetJson);
+  return { st, dist_km: st.dist_km, diag };
+});
+
+const bestByVar = {
+  temp: pickBestStationForVar("temp", candidatesDiag),
+  rh:   pickBestStationForVar("rh", candidatesDiag),
+  wind: pickBestStationForVar("wind", candidatesDiag),
+  rad:  pickBestStationForVar("rad", candidatesDiag)
+};
+
+renderDiagnosticoSeccion1({
+  principal,
+  supports,
+  candidatesDiag,
+  bestByVar
+});
 
 // Buscamos más allá de 5 si hace falta, hasta encontrar variables suficientes
 const limiteBusqueda = Math.min(25, estacionesCercanas.length);
