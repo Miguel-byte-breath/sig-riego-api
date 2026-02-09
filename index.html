@@ -1195,7 +1195,14 @@ const u2 = resolveMensualConFallback(
 
 // 1) Intento en estación principal efectiva (la del cálculo T/HR/viento)
 let radSource = null; // { stationId, mode, note }
-const monthKeyRad = `${anioFin}-${String(mIdx + 1).padStart(2, "0")}`;
+const anioRef = (typeof anioFinFetch !== "undefined")
+  ? anioFinFetch
+  : ((typeof anioFinDatos !== "undefined")
+      ? anioFinDatos
+      : (new Date().getFullYear() - 1));
+
+const monthKeyRad = `${anioRef}-${monthKey.slice(5,7)}`;
+
 const radMain = getRadMensualDeEstacion(estacionSeleccionadaId, monthKey);
 
 if (radMain && radMain.gloAvg > 0) {
