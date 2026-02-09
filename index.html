@@ -1067,6 +1067,14 @@ if (rh == null || wind == null) return;
     medias[m].count += 1;
 });
 
+console.log(
+  "DEBUG medias P",
+  medias.map((mm, i) => ({
+    mes: i,
+    sumP: mm.sumP,
+    countP: mm.countP
+  }))
+);
 
         let mesesCiclo = [], sumaNHn = 0, iter = new Date(fIni.getFullYear(), fIni.getMonth(), 1);
 let monthKeysCiclo = [];
