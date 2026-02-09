@@ -549,7 +549,8 @@ function buildMediasPorMesDesdeAemet(aemetJson) {
     // medias[1..12] con acumuladores; 0 no usado
     const medias = Array(13).fill(0).map(() => ({
         sumP: 0,
-
+        countP: 0,
+        
         // Temperaturas: guardamos directas y también tmax/tmin reales
         sumTmeanDirect: 0,
         countTmeanDirect: 0,
@@ -589,7 +590,10 @@ function buildMediasPorMesDesdeAemet(aemetJson) {
         const rh = num(d.hr);
         const wind = num(d.w_med);
 
-        if (p != null && p >= 0) medias[m].sumP += p;
+         if (p != null && p >= 0) {
+         medias[m].sumP += p;
+         medias[m].countP += 1;
+        }
 
         if (tmean != null) {
             medias[m].sumTmeanDirect += tmean;
@@ -1035,11 +1039,15 @@ const num = (x) => {
     const glo = num(d.glo);          // si viene (radiación global)
     const inso = num(d.inso);        // si viene (horas de sol)
 
-    // Para contar el mes necesitamos al menos temperatura + HR + viento
-    if (tmean == null && (tmax == null || tmin == null)) return;
-    if (rh == null || wind == null) return;
+    // ✅ Precipitación: se acumula siempre si existe
+if (p != null && p >= 0) {
+  medias[m].sumP += p;
+  medias[m].countP += 1;
+}
 
-    if (p != null && p >= 0) medias[m].sumP += p;
+// Para contar el mes en variables climáticas necesitamos al menos temperatura + HR + viento
+if (tmean == null && (tmax == null || tmin == null)) return;
+if (rh == null || wind == null) return;
 
     const TmeanEff = (tmean != null) ? tmean : (tmax + tmin) / 2;
 
@@ -1146,7 +1154,7 @@ function resolveTempsConFallback(monthKey, principalId, supportIds) {
                    if (!monthKeysCiclo.includes(monthKey)) monthKeysCiclo.push(monthKey);
                    if (!usageLogMensual[monthKey]) usageLogMensual[monthKey] = { tmean:null, tmin:null, tmax:null, rhmean:null, wind:null, rad:null, rad_value:null };
 
-    const pMensualAvg = medias[mIdx+1].count > 0 ? (medias[mIdx+1].sumP / medias[mIdx+1].count) : 0;
+   const pMensualAvg = medias[mIdx+1].countP > 0 ? (medias[mIdx+1].sumP / medias[mIdx+1].countP) : 0;
 
     // --- ETo FAO-56 (mm/día) ---
     let etoDiaria = 0;
