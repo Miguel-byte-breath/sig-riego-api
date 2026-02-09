@@ -280,4 +280,5 @@ El sistema debe entenderse como una **herramienta de apoyo a la decisión**, no 
 > *Mejor un modelo claro, explicable y trazable que uno aparentemente preciso pero opaco.*
 
 ---
+```
 
