@@ -584,6 +584,7 @@ function buildMediasPorMesDesdeAemet(aemetJson) {
         if (!(m >= 1 && m <= 12)) continue;
 
         const p = num(d.p_mes || d.precipitacion);
+        if (d.p_mes != null) console.log("DEBUG p_mes", d.fecha, d.p_mes, "->", p);
         const tmean = num(d.tm_mes);
         const tmax = num(d.tm_max);
         const tmin = num(d.tm_min);
