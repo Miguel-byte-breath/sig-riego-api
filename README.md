@@ -1,4 +1,45 @@
+# 🌾 S.I.G. Riego Pro v1.0 (API Connect)
 
+**Sistema de Información Geográfica para la Gestión Integral de Recursos Hídricos**, orientado al diseño y planificación del riego agrícola mediante **climatología histórica real** y **cálculo agronómico riguroso**.
+
+La aplicación automatiza el **balance hídrico mensual y semanal** conectando de forma directa, resiliente y trazable con los servicios de **AEMET OpenData**.
+
+---
+
+## 🎯 Objetivo del sistema
+
+Proporcionar una **estimación robusta y reproducible** de las necesidades hídricas de un cultivo, incluso para **ciclos futuros**, combinando:
+
+- Climatología histórica real.
+- Evapotranspiración de referencia **FAO-56 Penman–Monteith**.
+- Reglas agronómicas explícitas y auditables.
+- Priorización inteligente de estaciones meteorológicas.
+
+---
+
+## 📍 Selección y validación de estaciones (Sección 1)
+
+### 📏 Cálculo de distancias
+A partir de la latitud y longitud de la parcela, el sistema calcula la **distancia geográfica real (Haversine)** a todas las estaciones AEMET disponibles.
+
+- Se selecciona una **estación principal** (la más cercana).
+- Se identifican hasta **5 estaciones de apoyo**, ordenadas por distancia.
+- Las distancias se muestran redondeadas con fines informativos.
+
+---
+
+### 🧪 Diagnóstico de cobertura de datos
+
+Para cada estación candidata se analiza la **cobertura real de datos mensuales** por variable climática:
+
+- Temperatura
+- Humedad relativa
+- Viento
+- Radiación (global / insolación)
+
+Ejemplo de lectura:
+
+Cobertura 39/39
 Significa:
 > La estación tiene datos válidos en **todos los meses disponibles** del histórico devuelto por AEMET  
 > (AEMET puede devolver 36, 37, 38 o 39 meses según disponibilidad real).
