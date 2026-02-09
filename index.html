@@ -1217,7 +1217,7 @@ if (radMain && radMain.gloAvg > 0) {
 
     for (let i = 0; i < supportStations.length; i++) {
         const st = supportStations[i];
-        const radSup = getRadMensualDeEstacion(st.id, monthKeyRad);
+        const radSup = getRadMensualDeEstacion(stationIdOf(st), monthKeyRad);
 
         if (radSup && radSup.gloAvg > 0) {
             Rs = rsFromGloMonthly(radSup.gloAvg, diasMesTotal);
