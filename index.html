@@ -1153,8 +1153,14 @@ function resolveTempsConFallback(monthKey, principalId, supportIds) {
     const mm = medias[mIdx + 1];
     if (estacionSeleccionadaMeta) {
     const stationIdUsada = estacionSeleccionadaId || (estacionSeleccionadaMeta && estacionSeleccionadaMeta.indicativo) || null;
-    const z = parseFloat(estacionSeleccionadaMeta.altitud || "0");
-    const latDeg = aemetToDec(estacionSeleccionadaMeta.latitud);
+    const z = Number.isFinite(estacionSeleccionadaMeta?.alt)
+  ? estacionSeleccionadaMeta.alt
+  : parseFloat(estacionSeleccionadaMeta?.altitud || "0");
+
+const latDeg = Number.isFinite(estacionSeleccionadaMeta?.lat)
+  ? estacionSeleccionadaMeta.lat
+  : aemetToDec(estacionSeleccionadaMeta?.latitud);
+
 // ---- PASO 4: resolve por fallback (principal + supports) ----
 const temps = resolveTempsConFallback(monthKey, estacionSeleccionadaId, supportIds);
 
