@@ -1354,9 +1354,18 @@ console.log("DEBUG usageLog init", monthKeysCiclo.length, Object.keys(usageLogMe
             </tr>`;
             
             exportDataMensual.push({ 
-                "Mes": m.etiqueta, "ETc (mm)": fmtNum(m.etcMm, 2), "P. Efectiva (mm)": fmtNum(m.peMm, 2), 
-                "Nec. Neta (m3/ha)": Math.round(m.nhn_m3), "Asignado (m3/ha)": Math.round(m3Asignado) 
-            });
+    "Mes": m.etiqueta,
+    "Año": m.anio,
+    "Mes Numérico": m.mesNum,
+    "Días Activos": m.diasActivos,
+    "ETo (mm/día)": fmtNum(m.etoDiaria, 2),
+    "Kc": fmtNum(m.kc, 2),
+    "ETc (mm)": fmtNum(m.etcMm, 2),
+    "Precipitación P (mm)": fmtNum(m.pMm, 2),
+    "Precipitación Efectiva Pe (mm)": fmtNum(m.peMm, 2),
+    "Necesidad Hídrica Neta (m³/ha)": Math.round(m.nhn_m3),
+    "Riego Asignado (m³/ha)": Math.round(m3Asignado)
+});
         });
 
         document.getElementById('totalP').innerText = fmtNum(sumaP, 1);
