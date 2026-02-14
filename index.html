@@ -1458,6 +1458,9 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
 
     document.getElementById('totalSemanalSuma').innerText = fmtNum(totalS) + " m³/ha";
     document.getElementById('seccionSemanal').style.display = "block";
+    
+    const maxVal = Math.max(0, ...dataS);
+    const yMaxSugerido = Math.ceil(maxVal * 1.15); // +15% de margen arriba
 
     if(miGraficaSemana) miGraficaSemana.destroy();
     miGraficaSemana = new Chart(document.getElementById('graficaSemanal').getContext('2d'), {
