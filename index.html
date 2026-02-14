@@ -1469,6 +1469,11 @@ function calcularSemanasCorrelativas(mesesCiclo, fIni, fFin) {
     maintainAspectRatio: false,
     layout: { padding: { top: 70 } }, // Evita que los números altos se corten
     plugins: {
+        legend: {
+    position: 'top',
+    align: 'center',
+    labels: { padding: 18 }
+  },
         datalabels: {
   display: true,
   anchor: 'end',
